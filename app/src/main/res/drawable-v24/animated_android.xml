@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedResources"
+    android:drawable="@drawable/android">
+
+    <target
+        android:animation="@animator/shoulder_move"
+        android:name="head_eyes" />
+
+    <target
+        android:animation="@animator/shoulder_move"
+        android:name="arms" />
+</animated-vector>
