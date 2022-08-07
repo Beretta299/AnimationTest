@@ -12,6 +12,7 @@ import com.karas.vector.Application
 import com.karas.vector.R
 import com.karas.vector.base.BaseFragment
 import com.karas.vector.base.utils.OnSeekBarProgressChanged
+import com.karas.vector.base.utils.ZoomGestureListener
 import com.karas.vector.base.utils.viewModel
 import com.karas.vector.databinding.PlayerFragmentBinding
 import io.reactivex.Single
@@ -36,42 +37,10 @@ class PlayerFragment: BaseFragment<PlayerFragmentBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = viewModel(viewModelFactory){
-
         }
 
         initViews()
-        scaleGestureDetector = ScaleGestureDetector(requireContext(), object: ScaleGestureDetector.OnScaleGestureListener {
-            override fun onScale(detector: ScaleGestureDetector?): Boolean {
-                if(detector?.scaleFactor!! > 1) {
-                    val scaleX = ObjectAnimator.ofFloat(binding.ivMainContainer, "scaleX", 2f)
-                    val scaleY = ObjectAnimator.ofFloat(binding.ivMainContainer, "scaleY", 2f)
-                    scaleX.start()
-                    scaleY.start()
-                } else {
-                    val scaleX = ObjectAnimator.ofFloat(binding.ivMainContainer, "scaleX", 1f)
-                    val scaleY = ObjectAnimator.ofFloat(binding.ivMainContainer, "scaleY", 1f)
-                    scaleX.start()
-                    scaleY.start()
-                }
-                return true
-            }
-
-            override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
-                //TODO("Not yet implemented")
-                return true
-            }
-
-            override fun onScaleEnd(detector: ScaleGestureDetector?) {
-                //TODO("Not yet implemented")
-            }
-
-        })
-
-        binding.ivMainContainer.setOnTouchListener { v, event ->
-            scaleGestureDetector.onTouchEvent(
-                event
-            )
-        }
+        initGestureDetector()
     }
 
     override fun bind(): PlayerFragmentBinding {
@@ -95,14 +64,14 @@ class PlayerFragment: BaseFragment<PlayerFragmentBinding>() {
                 customizeSpeedOfAnimation(seekBar.progress)
             }
             ivFirstAnimation.setOnClickListener {
-                setImageDrawable(R.drawable.animated_android)
+                setAnimationToContainer(R.drawable.animated_android)
             }
             ivSecondAnimation.setOnClickListener {
-                setImageDrawable(R.drawable.avd_anim)
+                setAnimationToContainer(R.drawable.avd_anim)
 
             }
             ivThirdAnimation.setOnClickListener {
-                setImageDrawable(R.drawable.animated_star)
+                setAnimationToContainer(R.drawable.animated_star)
             }
 
 
@@ -118,7 +87,12 @@ class PlayerFragment: BaseFragment<PlayerFragmentBinding>() {
 
             initColorContainers()
 
-            setImageDrawable(com.karas.vector.R.drawable.avd_anim)
+            setAnimationToContainer(com.karas.vector.R.drawable.avd_anim)
+            ivMainContainer.setOnTouchListener { v, event ->
+                scaleGestureDetector.onTouchEvent(
+                    event
+                )
+            }
         }
     }
 
@@ -138,19 +112,21 @@ class PlayerFragment: BaseFragment<PlayerFragmentBinding>() {
             }))
     }
 
-    private fun setImageDrawable(drawableID: Int) {
+    private fun setAnimationToContainer(drawableID: Int) {
         animatedVectorDrawable = SeekableAnimatedVectorDrawable.create(
             requireContext(),
             drawableID
         )!!
+
         binding.ivMainContainer.setImageDrawable(animatedVectorDrawable)
-        animatedVectorDrawable.colorFilter
+
         val backgroundColorAnimator = ObjectAnimator.ofInt(
             animatedVectorDrawable,
             "alpha",
             0, 255)
         backgroundColorAnimator.duration = 300
         backgroundColorAnimator.start()
+
         customizeSpeedOfAnimation(binding.seekBar.progress)
     }
 
@@ -164,8 +140,29 @@ class PlayerFragment: BaseFragment<PlayerFragmentBinding>() {
             val params = LinearLayout.LayoutParams(300, 300)
             params.setMargins(0, 0, 15, 0)
             button.layoutParams = params
-
             binding.llColorContainer.addView(button)
         }
     }
+
+    private fun zoomImage(value: Float) {
+        val scaleX = ObjectAnimator.ofFloat(binding.ivMainContainer, "scaleX", value)
+        val scaleY = ObjectAnimator.ofFloat(binding.ivMainContainer, "scaleY", value)
+        scaleX.start()
+        scaleY.start()
+    }
+
+    private fun initGestureDetector() {
+        scaleGestureDetector = ScaleGestureDetector(requireContext(), object :ZoomGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector?): Boolean {
+                if(detector?.scaleFactor!! > 1) {
+                    zoomImage(2f)
+                } else {
+                    zoomImage(1f)
+
+                }
+                return true
+            }
+        })
+    }
+
 }
